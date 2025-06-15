@@ -1,3 +1,7 @@
+---
+
+## 1. ملف GitHub Actions (`.github/workflows/run-model.yml`)
+```yaml
 name: Run DeepSeek Model Temporarily
 
 on:
@@ -10,6 +14,8 @@ concurrency:
 jobs:
   setup_run:
     runs-on: ubuntu-latest
+    env:
+      PORT: 5000
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -64,20 +70,12 @@ jobs:
           npm install
           npm run build
 
-      - name: Run server and expose via ngrok
+      - name: Run Flask server and expose via ngrok
         working-directory: backend
-        env:
-          PORT: 5000
         run: |
-          # Start Flask backend
+          # Start Flask backend on 0.0.0.0
           python app.py &
-          
-       - name: Check Flask server logs
-        run: |
-          sleep 5
-          echo "=== Running Flask logs ==="
-          ps aux | grep python
-          echo "=== Checking if server is still running ==="
-          curl -v http://localhost:5000/health || echo "Server not reachable"
-           
-           ngrok http $PORT --log=stdout
+          # Give the server time to start
+          sleep 10
+          # Expose port via ngrok
+          ngrok http $PORT --log=stdout
