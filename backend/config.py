@@ -11,6 +11,6 @@ class Settings:
     # يمكن إضافة إعدادات أخرى هنا حسب حاجتك
     DEBUG: bool = bool(os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes'])
     # مثلاً إعدادات أخرى
-    # MODEL_PATH = os.getenv('MODEL_PATH', './model')
+    MODEL_PATH = os.getenv('MODEL_PATH', './model')
     
 settings = Settings()
