@@ -1,0 +1,68 @@
+name: Run DeepSeek Model Temporarily
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deepseek-temp
+  cancel-in-progress: true
+
+jobs:
+  setup_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package.json') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Decode rclone secret
+        run: |
+          echo "$GDRIVE_RCLONE_B64" | base64 --decode > ./rclone.conf
+        env:
+          GDRIVE_RCLONE_B64: ${{ secrets.GDRIVE_RCLONE_B64 }}
+
+      - name: Install rclone & ngrok
+        run: |
+          sudo apt-get update && sudo apt-get install -y rclone
+          npm install -g ngrok
+
+      - name: Download model from Google Drive
+        run: |
+          rclone --config ./rclone.conf copy drive:deepseek/models/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M ./model
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+
+      - name: Install frontend dependencies & build
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start backend + ngrok tunnel
+        working-directory: ./backend
+        run: |
+          ngrok http 5000 --log=stdout &
+          python app.py
