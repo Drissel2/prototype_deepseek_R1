@@ -16,6 +16,15 @@ tokenizer = AutoTokenizer.from_pretrained(settings.MODEL_PATH)
 model = AutoModelForCausalLM.from_pretrained(settings.MODEL_PATH)
 model.eval()
 
+try:
+    logger.info(f"Loading model from {settings.MODEL_PATH}")
+    tokenizer = AutoTokenizer.from_pretrained(settings.MODEL_PATH)
+    model = AutoModelForCausalLM.from_pretrained(settings.MODEL_PATH)
+    model.eval()
+except Exception as e:
+    logger.error(f"Failed to load model: {e}")
+    exit(1)
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok'}), 200
