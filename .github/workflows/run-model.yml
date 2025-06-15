@@ -72,6 +72,6 @@ jobs:
           # Start Flask backend
           python app.py &
           # Wait for server to start
-          sleep 5
+          sleep 15
           # Expose port via ngrok
           ngrok http $PORT --log=stdout
