@@ -1,20 +1,25 @@
 from flask import Flask, request, jsonify
 from llama_cpp import Llama
 import logging
-from config import settings
 import os
 
-model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../model/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"))
+# حساب المسار المطلق للنموذج مرة واحدة
+MODEL_FILE = "DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"
+model_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../model", MODEL_FILE)
+)
+
+# طباعة DEBUG
 print(f"[DEBUG] Looking for model at: {model_path}")
 print(f"[DEBUG] Exists? {os.path.exists(model_path)}")
+
 # ضبط اللوج
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# تهيئة نموذج GGUF عبر llama-cpp-python
-model_path = f"{settings.MODEL_PATH}/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"
+# نستخدم فقط المتغير model_path الذي تحققنا منه أعلاه
 logger.info(f"Loading GGUF model from {model_path}")
 try:
     llm = Llama(model_path=model_path)
