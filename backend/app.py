@@ -4,7 +4,7 @@ import logging
 from config import settings
 import os
 
-model_path = "./model/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"
+model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../model/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"))
 print(f"[DEBUG] Looking for model at: {model_path}")
 print(f"[DEBUG] Exists? {os.path.exists(model_path)}")
 # ضبط اللوج
