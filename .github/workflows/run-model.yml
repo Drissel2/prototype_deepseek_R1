@@ -58,7 +58,7 @@ jobs:
       - name: Install frontend dependencies & build
         working-directory: ./frontend
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Start backend + ngrok tunnel
