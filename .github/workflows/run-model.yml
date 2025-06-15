@@ -36,33 +36,42 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Decode rclone secret
+      - name: Decode rclone config
         run: |
-          echo "$GDRIVE_RCLONE_B64" | base64 --decode > ./rclone.conf
+          echo "$GDRIVE_RCLONE_B64" | base64 --decode > rclone.conf
         env:
           GDRIVE_RCLONE_B64: ${{ secrets.GDRIVE_RCLONE_B64 }}
 
-      - name: Install rclone & ngrok
+      - name: Install rclone and ngrok
         run: |
           sudo apt-get update && sudo apt-get install -y rclone
           npm install -g ngrok
 
+      - name: Authenticate ngrok
+        run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+
       - name: Download model from Google Drive
         run: |
-          rclone --config ./rclone.conf copy deepseek-drive:models/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf ./model
+          rclone --config ./rclone.conf copy drive:deepseek/models/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M ./model
 
       - name: Install backend dependencies
-        working-directory: ./backend
+        working-directory: backend
         run: pip install -r requirements.txt
 
-      - name: Install frontend dependencies & build
-        working-directory: ./frontend
+      - name: Install frontend dependencies and build
+        working-directory: frontend
         run: |
           npm install
           npm run build
 
-      - name: Start backend + ngrok tunnel
-        working-directory: ./backend
+      - name: Run server and expose via ngrok
+        working-directory: backend
+        env:
+          PORT: ${{ secrets.PORT }}
         run: |
-          ngrok http 5000 --log=stdout &
-          python app.py
+          # Start Flask backend
+          python app.py &
+          # Wait for server to start
+          sleep 5
+          # Expose port via ngrok
+          ngrok http $PORT --log=stdout
