@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+from llama_cpp import Llama
 import logging
 from config import settings
 
@@ -10,19 +9,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# تحميل النموذج
-logger.info(f"Loading model from {settings.MODEL_PATH}")
-tokenizer = AutoTokenizer.from_pretrained(settings.MODEL_PATH)
-model = AutoModelForCausalLM.from_pretrained(settings.MODEL_PATH)
-model.eval()
-
+# تهيئة نموذج GGUF عبر llama-cpp-python
+model_path = f"{settings.MODEL_PATH}/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"
+logger.info(f"Loading GGUF model from {model_path}")
 try:
-    logger.info(f"Loading model from {settings.MODEL_PATH}")
-    tokenizer = AutoTokenizer.from_pretrained(settings.MODEL_PATH)
-    model = AutoModelForCausalLM.from_pretrained(settings.MODEL_PATH)
-    model.eval()
+    llm = Llama(model_path=model_path)
 except Exception as e:
-    logger.error(f"Failed to load model: {e}")
+    logger.error(f"Failed to load GGUF model: {e}")
     exit(1)
 
 @app.route('/health', methods=['GET'])
@@ -36,17 +29,15 @@ def generate():
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
 
-    inputs = tokenizer(prompt, return_tensors='pt')
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_length=settings.MAX_LENGTH,
-            do_sample=True,
-            temperature=settings.TEMPERATURE,
-        )
-    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    logger.info(f"Generated text length: {len(result)}")
-    return jsonify({'generated_text': result})
+    try:
+        response = llm(prompt, max_tokens=settings.MAX_LENGTH, temperature=settings.TEMPERATURE)
+        generated = response.get('choices', [{}])[0].get('text', '')
+    except Exception as e:
+        logger.error(f"Generation error: {e}")
+        return jsonify({'error': 'Generation failed'}), 500
+
+    logger.info(f"Generated text length: {len(generated)}")
+    return jsonify({'generated_text': generated})
 
 if __name__ == '__main__':
-    app.run(host=settings.HOST, port=settings.PORT, debug=True)
+    app.run(host=settings.HOST, port=settings.PORT)
