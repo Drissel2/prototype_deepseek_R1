@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Model files
+model/
+
+# Env files
+backend/.env
+
+# Node modules
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+
+# Vscode
+.vscode/
+
+# rclone config
+rclone.conf
