@@ -1,16 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Settings:
-    # احصل على قيمة PORT من البيئة، وتأكد أنها رقم صحيح
-    port_str = os.getenv('PORT')
-    if port_str and port_str.isdigit():
-        PORT: int = int(port_str)
-    else:
-        PORT: int = 5000
+    MODEL_PATH: str = os.getenv('MODEL_PATH', './model')
+    HOST: str = os.getenv('HOST', '0.0.0.0')
+    PORT: int = int(os.getenv('PORT', 5000))
+    MAX_LENGTH: int = int(os.getenv('MAX_LENGTH', 256))
+    TEMPERATURE: float = float(os.getenv('TEMPERATURE', 0.7))
 
-    # يمكن إضافة إعدادات أخرى هنا حسب حاجتك
-    DEBUG: bool = bool(os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes'])
-    # مثلاً إعدادات أخرى
-    MODEL_PATH = os.getenv('MODEL_PATH', './model')
-    
 settings = Settings()
