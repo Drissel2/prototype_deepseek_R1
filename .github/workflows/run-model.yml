@@ -71,14 +71,13 @@ jobs:
         run: |
           # Start Flask backend
           python app.py &
-
-          for i in {1..30}; do
-            if curl -s http://localhost:5000/health | grep -q "ok"; then
-            echo "Flask server is ready!"
-             break
-          fi
-          echo "Waiting for Flask server..."
-           sleep 2
-           done
+          
+       - name: Check Flask server logs
+        run: |
+          sleep 5
+          echo "=== Running Flask logs ==="
+          ps aux | grep python
+          echo "=== Checking if server is still running ==="
+          curl -v http://localhost:5000/health || echo "Server not reachable"
            
            ngrok http $PORT --log=stdout
