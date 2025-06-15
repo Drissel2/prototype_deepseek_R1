@@ -1,7 +1,4 @@
----
-
 ## 1. ملف GitHub Actions (`.github/workflows/run-model.yml`)
-```yaml
 name: Run DeepSeek Model Temporarily
 
 on:
